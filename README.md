@@ -5,8 +5,6 @@
 
 # Uptime Kuma Deployment with HTTPS
 
-**Repository:** https://github.com/2plus2cabbage/uptime-kuma
-
 Deploys Uptime Kuma monitoring platform on Ubuntu Server 24.04.3 with Docker, secured by Nginx reverse proxy and internal AD Certificate Authority.  The default docker install of Uptime Kuma only supports HTTP.  This guide shows how to secure the connection with HTTPS using a reverse proxy.  The addition of the internal root CA certificate allows you to use Uptime Kuma to check certificate expirations for internal resources in addition to public web sites.
 
 ## Documentation
