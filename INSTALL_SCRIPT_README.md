@@ -18,6 +18,8 @@
 
 This script automates the complete installation of Uptime Kuma with HTTPS on Ubuntu Server 24.04.3.
 
+**Repository:** https://github.com/2plus2cabbage/uptime-kuma
+
 ## What It Does
 
 **Automated Steps:**
@@ -38,7 +40,7 @@ This script automates the complete installation of Uptime Kuma with HTTPS on Ubu
 
 - **Fresh Ubuntu Server 24.04.3 minimal installation** (not for production servers with existing services)
 - Root or sudo access
-- Internal root CA certificate content (base64 encoded)
+- Internal root CA certificate or certificate chain (base64 encoded)
 - Access to your AD Certificate Authority for certificate signing
 - DNS record pointing to your server
 
@@ -69,7 +71,7 @@ The script will display a warning and ask you to confirm this is a fresh test in
 ### 4. Follow the prompts
 
 The script will ask for:
-- Fully qualified domain name (e.g., uptime.yourdomain.com or uptime.yourdomain.local)
+- Fully qualified domain name (e.g., uptime.yourdomain.com or uptime.local)
 - Certificate details with defaults (press Enter to accept):
   - Country code [US]
   - State/Province [Virginia]
@@ -81,10 +83,30 @@ The script will ask for:
 
 ### 5. Paste internal root CA certificate
 
-The script will prompt you to paste your internal root CA certificate:
+The script will prompt you to paste your internal root CA certificate (or certificate chain):
 - Have your CA certificate ready (base64 encoded)
-- Paste the entire certificate including BEGIN and END lines
-- Press Enter after the last line - script will automatically continue
+- For certificate chains: paste all certificates in order (intermediate first, then root)
+- Paste the entire certificate(s) including all BEGIN and END lines
+- Press Enter after the last line, then press Enter again on a blank line to finish
+
+**Single certificate format:**
+```
+-----BEGIN CERTIFICATE-----
+MIIDXTCCAkWgAwIBAgIJAKJ...
+-----END CERTIFICATE-----
+<blank line>
+```
+
+**Certificate chain format:**
+```
+-----BEGIN CERTIFICATE-----
+(intermediate certificate)
+-----END CERTIFICATE-----
+-----BEGIN CERTIFICATE-----
+(root certificate)
+-----END CERTIFICATE-----
+<blank line>
+```
 
 ### 6. Complete certificate signing
 
@@ -167,9 +189,11 @@ Once complete, access your instance at: `https://your-domain.com`
 
 If you see "Invalid certificate content":
 - Ensure you copied the entire certificate including `-----BEGIN CERTIFICATE-----` and `-----END CERTIFICATE-----`
+- For certificate chains: ensure all certificates are included with their BEGIN/END markers
 - Verify you downloaded the certificate in Base 64 encoded format (not DER/binary)
-- Make sure there are no extra characters before or after the certificate
-- The script automatically detects the end when it sees `-----END CERTIFICATE-----`
+- Make sure there are no extra characters before or after the certificate(s)
+- For chains: after pasting the last certificate, press Enter on a blank line to finish
+- The script automatically detects certificate chains and will indicate how many certificates were found
 - Try pasting again
 
 ### Script fails during execution

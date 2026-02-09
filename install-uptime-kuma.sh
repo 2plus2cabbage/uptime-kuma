@@ -176,24 +176,46 @@ echo ""
 
 # Internal CA certificate
 echo ""
-print_info "You will need your internal root CA certificate."
+print_info "You will need your internal root CA certificate (or certificate chain)."
 echo ""
 print_warning "Paste your internal root CA certificate below:"
-print_info "(Paste the entire certificate and press Enter after the last line)"
+print_info "(You can paste a single certificate or a full certificate chain)"
+print_info "(Paste and press Enter after the last line, then press Enter again on a blank line to finish)"
 echo ""
-echo "Certificate should look like:"
+echo "Single certificate format:"
 echo "-----BEGIN CERTIFICATE-----"
 echo "MIIDXTCCAkWgAwIBAgIJAKJ..."
-echo "..."
+echo "-----END CERTIFICATE-----"
+echo ""
+echo "Or certificate chain format:"
+echo "-----BEGIN CERTIFICATE-----"
+echo "(intermediate certificate)"
+echo "-----END CERTIFICATE-----"
+echo "-----BEGIN CERTIFICATE-----"
+echo "(root certificate)"
 echo "-----END CERTIFICATE-----"
 echo ""
 
-# Read multi-line certificate input until END CERTIFICATE is found
+# Read multi-line certificate input until we get a blank line after a certificate
 CA_CERT_CONTENT=""
+LAST_LINE=""
+CERT_COMPLETE=false
+
 while IFS= read -r line; do
-    CA_CERT_CONTENT="${CA_CERT_CONTENT}${line}"$'\n'
-    if [[ "$line" =~ "END CERTIFICATE" ]]; then
+    # If we get a blank line and we've seen at least one complete certificate, we're done
+    if [[ -z "$line" ]] && [[ "$CERT_COMPLETE" == true ]]; then
         break
+    fi
+    
+    # Add the line to our content
+    if [[ -n "$line" ]]; then
+        CA_CERT_CONTENT="${CA_CERT_CONTENT}${line}"$'\n'
+        LAST_LINE="$line"
+        
+        # Check if we've completed at least one certificate
+        if [[ "$line" =~ "END CERTIFICATE" ]]; then
+            CERT_COMPLETE=true
+        fi
     fi
 done
 
@@ -206,6 +228,12 @@ fi
 if [[ ! "$CA_CERT_CONTENT" =~ "END CERTIFICATE" ]]; then
     print_error "Invalid certificate content. Must contain '-----END CERTIFICATE-----'"
     exit 1
+fi
+
+# Count number of certificates in the chain
+CERT_COUNT=$(echo "$CA_CERT_CONTENT" | grep -c "BEGIN CERTIFICATE")
+if [[ $CERT_COUNT -gt 1 ]]; then
+    print_info "Detected certificate chain with $CERT_COUNT certificates"
 fi
 
 print_success "Configuration collected"
@@ -263,18 +291,24 @@ print_success "Docker installed"
 
 print_header "STEP 4: Installing Internal Root CA Certificate"
 
-# Write CA certificate to trusted store
+# Write CA certificate (or chain) to trusted store
 echo "$CA_CERT_CONTENT" > /usr/local/share/ca-certificates/internal-root-ca.crt
 
-# Verify certificate was written and is valid
+# Verify certificate was written
 if [[ ! -f /usr/local/share/ca-certificates/internal-root-ca.crt ]]; then
     print_error "Failed to write CA certificate file"
     exit 1
 fi
 
-# Validate certificate is valid
-if openssl x509 -in /usr/local/share/ca-certificates/internal-root-ca.crt -noout -text &>/dev/null; then
-    print_success "Valid internal root CA certificate"
+# Validate certificate(s) are valid
+# For certificate chains, we need to validate the entire chain
+if openssl crl2pkcs7 -nocrl -certfile /usr/local/share/ca-certificates/internal-root-ca.crt 2>/dev/null | \
+   openssl pkcs7 -print_certs -noout &>/dev/null; then
+    if [[ $CERT_COUNT -gt 1 ]]; then
+        print_success "Valid internal CA certificate chain ($CERT_COUNT certificates)"
+    else
+        print_success "Valid internal root CA certificate"
+    fi
 else
     print_error "CA certificate validation failed. Please check the certificate content."
     exit 1

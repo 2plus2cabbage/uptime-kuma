@@ -173,6 +173,8 @@ Your internal root CA certificate needs replacement when:
 - Your organization has renewed/replaced the root CA
 - You need to update to a new internal CA
 
+**Note:** If your organization uses a certificate chain (intermediate + root), you'll need to install the complete chain.
+
 ### Prerequisites
 
 - SSH access to your Uptime Kuma server
@@ -191,6 +193,8 @@ sudo cp /usr/local/share/ca-certificates/internal-root-ca.crt \
 
 ### Step 3: Install New Root CA Certificate
 
+**For single certificate:**
+
 **Option A: Copy from local machine**
 ```bash
 scp new-root-ca.crt user@your-server:/tmp/
@@ -207,6 +211,22 @@ sudo chmod 644 /usr/local/share/ca-certificates/internal-root-ca.crt
 sudo nano /usr/local/share/ca-certificates/internal-root-ca.crt
 ```
 Paste the certificate content, save and exit (Ctrl+X, Y, Enter).
+
+**For certificate chain (intermediate + root):**
+
+If you have separate files for intermediate and root certificates, combine them:
+```bash
+cat intermediate.crt root.crt > chain.crt
+```
+
+Then install the chain:
+```bash
+scp chain.crt user@your-server:/tmp/
+sudo mv /tmp/chain.crt /usr/local/share/ca-certificates/internal-root-ca.crt
+sudo chmod 644 /usr/local/share/ca-certificates/internal-root-ca.crt
+```
+
+The file should contain all certificates in order (intermediate first, root last), each with its own BEGIN/END markers.
 
 ### Step 4: Update System CA Trust Store
 
