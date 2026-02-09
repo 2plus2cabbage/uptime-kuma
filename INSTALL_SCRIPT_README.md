@@ -180,7 +180,8 @@ Once complete, access your instance at: `https://your-domain.com`
 | `/usr/local/share/ca-certificates/internal-root-ca.crt` | Internal root CA |
 | `/root/uptime-kuma-import/` | Bulk import working directory |
 | `/root/uptime-kuma-import/kuma-venv/` | Python virtual environment |
-| `/root/uptime-kuma-import/import_monitors.py` | Import script (with credentials) |
+| `/root/uptime-kuma-import/import_monitors.py` | Import script |
+| `/root/uptime-kuma-import/credentials.py` | Credentials file (600 permissions) |
 | `/root/uptime-kuma-import/monitors.csv` | Monitor list CSV file |
 
 ## Troubleshooting

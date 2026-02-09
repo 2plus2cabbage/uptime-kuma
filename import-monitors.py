@@ -3,23 +3,21 @@ Script Name: import_monitors.py
 Description: Bulk import HTTPS monitors into Uptime Kuma from a CSV file.
              Automatically handles duplicates by URL, sets heartbeat interval,
              and enables certificate expiry notifications.
-Author: Auto-generated example
+Author: Auto-generated
 Requirements:
     - Python 3.8+
     - uptime-kuma-api Python library
     - monitors.csv file in the same directory
+    - credentials.py file in the same directory
 Usage:
-    1. Create a virtual environment:
-       python3 -m venv kuma-venv
+    1. Activate virtual environment:
        source kuma-venv/bin/activate
-    2. Install required library:
-       pip install uptime-kuma-api
-    3. Edit configuration below (KUMA_URL, USERNAME, PASSWORD, CSV_FILE)
-    4. Run:
+    2. Run:
        python import_monitors.py
 Notes:
     - Duplicate detection is by URL.
     - Only HTTPS URLs are processed.
+    - credentials.py should contain USERNAME and PASSWORD variables
 """
 
 import csv
@@ -27,8 +25,10 @@ from uptime_kuma_api import UptimeKumaApi
 
 # ===== Configuration =====
 KUMA_URL = "http://127.0.0.1:3001"  # URL to your Uptime Kuma instance
-USERNAME = "adminuser"               # Uptime Kuma username
-PASSWORD = "adminpassword"           # Uptime Kuma password
+
+# Load credentials from config file
+exec(open('credentials.py').read())
+
 CSV_FILE = "monitors.csv"           # CSV file containing monitors
 
 # ===== Connect to Uptime Kuma =====

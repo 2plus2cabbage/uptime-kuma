@@ -5,6 +5,8 @@
 
 # Uptime Kuma Deployment with HTTPS
 
+**Repository:** https://github.com/2plus2cabbage/uptime-kuma
+
 Deploys Uptime Kuma monitoring platform on Ubuntu Server 24.04.3 with Docker, secured by Nginx reverse proxy and internal AD Certificate Authority.  The default docker install of Uptime Kuma only supports HTTP.  This guide shows how to secure the connection with HTTPS using a reverse proxy.  The addition of the internal root CA certificate allows you to use Uptime Kuma to check certificate expirations for internal resources in addition to public web sites.
 
 ## Documentation
@@ -17,6 +19,9 @@ The project includes three comprehensive PDF guides that cover the complete depl
 - [install-uptime-kuma.sh](install-uptime-kuma.sh): Complete automated installation script for fresh Ubuntu installations.
 - [INSTALL_SCRIPT_README.md](INSTALL_SCRIPT_README.md): Installation script documentation and usage guide.
 
+**Maintenance:**
+- [CERTIFICATE_RENEWAL_GUIDE.md](CERTIFICATE_RENEWAL_GUIDE.md): Step-by-step instructions for renewing web server certificates and replacing root CA certificates.
+
 ## Files
 The deployment creates several key configuration files across the system:
 - `compose.yaml`: Docker Compose configuration for Uptime Kuma container.
@@ -26,6 +31,7 @@ The deployment creates several key configuration files across the system:
 - `/etc/nginx/sites-available/uptime-kuma`: Nginx reverse proxy configuration.
 - `/usr/local/share/ca-certificates/internal-root-ca.crt`: Your internal root CA certificate.
 - `~/uptime-kuma-import/import_monitors.py`: Python script for bulk monitor imports (optional).
+- `~/uptime-kuma-import/credentials.py`: Uptime Kuma login credentials (optional, 600 permissions).
 - `~/uptime-kuma-import/monitors.csv`: CSV file containing monitor list (optional).
 
 ## How It Works
@@ -80,3 +86,9 @@ All HTTP traffic on port 80 is redirected to HTTPS on port 443. Nginx handles SS
 - It is important to fully understand your organization's policies regarding certificate issuance, SSL/TLS configurations, and security requirements.
 - You are responsible for maintaining certificate validity, monitoring for security updates, and ensuring compliance with your organization's security standards.
 - Regular backups of the Uptime Kuma data volume are recommended for disaster recovery.
+
+## Certificate Maintenance
+- **Web server certificates** typically expire annually - plan to renew 30 days before expiration
+- **Root CA certificates** may have longer validity periods but still require eventual replacement
+- See [CERTIFICATE_RENEWAL_GUIDE.md](CERTIFICATE_RENEWAL_GUIDE.md) for detailed renewal procedures
+- Use Uptime Kuma to monitor your own certificate expiration by creating a monitor for your domain

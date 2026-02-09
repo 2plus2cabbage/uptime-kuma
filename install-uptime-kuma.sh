@@ -713,7 +713,7 @@ pip install --quiet uptime-kuma-api
 
 print_success "Installed uptime-kuma-api library"
 
-# Create import script
+# Create import script (without credentials first)
 cat > import_monitors.py <<'IMPORT_SCRIPT'
 """
 Script Name: import_monitors.py
@@ -740,8 +740,10 @@ from uptime_kuma_api import UptimeKumaApi
 
 # ===== Configuration =====
 KUMA_URL = "http://127.0.0.1:3001"  # URL to your Uptime Kuma instance
-USERNAME = "PLACEHOLDER_USERNAME"    # Uptime Kuma username
-PASSWORD = "PLACEHOLDER_PASSWORD"    # Uptime Kuma password
+
+# Load credentials from config file
+exec(open('credentials.py').read())
+
 CSV_FILE = "monitors.csv"           # CSV file containing monitors
 
 # ===== Connect to Uptime Kuma =====
@@ -796,9 +798,17 @@ api.disconnect()
 print("Import complete.")
 IMPORT_SCRIPT
 
-# Replace placeholders with actual credentials
-sed -i "s/PLACEHOLDER_USERNAME/$KUMA_USERNAME/g" import_monitors.py
-sed -i "s/PLACEHOLDER_PASSWORD/$KUMA_PASSWORD/g" import_monitors.py
+# Create credentials file using Python to handle any special characters
+python3 <<CREDENTIALS_WRITER
+username = '''$KUMA_USERNAME'''
+password = '''$KUMA_PASSWORD'''
+
+with open('credentials.py', 'w') as f:
+    f.write(f'USERNAME = {repr(username)}\n')
+    f.write(f'PASSWORD = {repr(password)}\n')
+CREDENTIALS_WRITER
+
+chmod 600 credentials.py
 
 print_success "Created import_monitors.py script with credentials"
 
